@@ -8,6 +8,7 @@ h2{position:sticky;top:0;padding:10px 20px;margin:20px -20px 10px;border-bottom:
 table{width:100%}
 table,td{border:1px solid;border-collapse:collapse}
 td{padding:10px 0;width:72px;text-align:center}
+.he{background:#eee}
 </style>
 <div><a href="#b51">Big-5 Level 1</a> | <a href="#b52">Big-5 Level 2</a> | <a href="#scs">HKSCS</a></div>
 <div>HKSCS碼表來自: https://data.gov.hk/en-data/dataset/hk-ogcio-ogcio_hp-hong-kong-supplementary-character-set-related-information/resource/009a5bf1-7f40-4bfb-acbb-8851bf832708</div>
@@ -115,7 +116,11 @@ $json = json_decode(trim(removeBOM($hkscs)));
 $charListHKSCS = [];
 foreach($json as $item) {
 	if ($item->cangjie !== "") {
-		$code = substr($item->{"H-Source"}, 2);
+		if (substr($item->{"H-Source"}, 0, 2) === 'H-') {
+			$code = substr($item->{"H-Source"}, 2);
+		} else {
+			$code = $item->{"H-Source"};
+		}
 		if (!isset($charList[$code]) && !isset($charList2[$code])) {
 			$charListHKSCS[$code] = [$code, $item->char];
 		}
@@ -130,7 +135,14 @@ foreach ($chunk as $row) {
 	echo '<tr>';
 	foreach ($row as $col) {
 		$utf32 = iconv('UTF-8', 'UTF-32BE', trim($col[1]));
-		echo '<td align=center>' . strtoupper($col[0]) . '<div style="font-size:32px">' . $col[1] . '</div>' . strtoupper(ltrim(bin2hex($utf32), "0")) . '</td>';
+		if (strlen($col[0]) > 4) {
+			$class = ' class="he';
+			$row1 = '<span style="font-family:Arial Narrow">' . strtoupper($col[0]) . '</span>';
+		} else {
+			$class = '';
+			$row1 = strtoupper($col[0]);
+		}
+		echo '<td align=center' . $class . '>' . $row1 . '<div style="font-size:32px">' . $col[1] . '</div>' . strtoupper(ltrim(bin2hex($utf32), "0")) . '</td>';
 	}
 	echo '</tr>' . "\r\n";
 }
